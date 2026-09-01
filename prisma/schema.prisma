@@ -1,0 +1,203 @@
+// Prisma schema for Edura Course Platform
+// DB: Vercel Postgres (PostgreSQL)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  STUDENT
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum VideoType {
+  YOUTUBE
+  UPLOAD
+}
+
+enum Level {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model User {
+  id            String       @id @default(cuid())
+  name          String?
+  email         String       @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  image         String?
+  role          Role         @default(STUDENT)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  enrollments   Enrollment[]
+  payments      Payment[]
+  reviews       Review[]
+  discussions   Discussion[]
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  @@unique([identifier, token])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  icon      String?
+  createdAt DateTime @default(now())
+  courses   Course[]
+}
+
+model Course {
+  id          String       @id @default(cuid())
+  title       String
+  slug        String       @unique
+  description String       @db.Text
+  price       Float        @default(0)
+  thumbnail   String?
+  level       Level        @default(BEGINNER)
+  duration    String?      // e.g. "03 WEEKS"
+  published   Boolean      @default(true)
+  featured    Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  categoryId  String?
+  category    Category?    @relation(fields: [categoryId], references: [id])
+  instructor  String?      // display name
+  lessons     Lesson[]
+  enrollments Enrollment[]
+  payments    Payment[]
+  reviews     Review[]
+}
+
+model Lesson {
+  id        String    @id @default(cuid())
+  courseId  String
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title     String
+  order     Int       @default(0)
+  videoType VideoType @default(YOUTUBE)
+  videoUrl  String?   @db.Text // youtube embed or blob url
+  duration  String?   // e.g. "12:45"
+  isPreview Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  resources Resource[]
+  discussions Discussion[]
+}
+
+model Resource {
+  id        String   @id @default(cuid())
+  lessonId  String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  title     String
+  fileUrl   String
+  fileType  String?  // pdf, worksheet
+  createdAt DateTime @default(now())
+}
+
+model Enrollment {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress   Int      @default(0) // 0-100
+  completed  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  @@unique([userId, courseId])
+}
+
+model PaymentAccount {
+  id            String   @id @default(cuid())
+  title         String   // e.g. "Commercial Bank of Ethiopia"
+  bankName      String?
+  accountNumber String
+  holderName    String
+  instructions  String?  @db.Text
+  qrImageUrl    String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId    String
+  course      Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  amount      Float
+  proofImageUrl String?     // Vercel Blob URL
+  status      PaymentStatus @default(PENDING)
+  adminNote   String?       @db.Text
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  rating    Int      @default(5)
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+}
+
+model Discussion {
+  id        String   @id @default(cuid())
+  lessonId  String?
+  lesson    Lesson?  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  courseId  String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   String   @db.Text
+  parentId  String?
+  parent    Discussion? @relation("Replies", fields: [parentId], references: [id])
+  replies   Discussion[] @relation("Replies")
+  createdAt DateTime @default(now())
+}

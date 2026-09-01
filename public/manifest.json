@@ -1,0 +1,16 @@
+{
+  "name": "EDURA Online Education",
+  "short_name": "EDURA",
+  "description": "Online Education Feels Like Real Classroom",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0166FF",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}

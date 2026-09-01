@@ -1,0 +1,45 @@
+{
+  "name": "edura-course-platform",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "echo \"skip prisma generate - fallback mode\"",
+    "db:generate": "prisma generate || echo \"prisma not available\"",
+    "db:push": "prisma db push || echo \"prisma not available\"",
+    "db:seed": "tsx prisma/seed.ts || echo \"seed skipped\""
+  },
+  "dependencies": {
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "next-auth": "^4.24.11",
+    "next-intl": "^4.3.9",
+    "@prisma/client": "^5.22.0",
+    "@vercel/blob": "^1.1.1",
+    "@vercel/postgres": "^0.10.0",
+    "bcryptjs": "^2.4.3",
+    "zod": "^3.23.8",
+    "lucide-react": "^0.468.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.4",
+    "class-variance-authority": "^0.7.1",
+    "recharts": "^2.13.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/bcryptjs": "^2.4.6",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.4",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.1"
+  }
+}
